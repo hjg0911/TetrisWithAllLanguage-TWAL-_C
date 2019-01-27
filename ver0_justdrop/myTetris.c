@@ -1,92 +1,68 @@
 #include <stdio.h>
-#include <unistd.h>
+#include <unistd.h> //for usleep
 #include <stdlib.h> // for rand(), srand()
 #include <time.h> // for time()
 #include <curses.h>
 #include "tetris.h"
 
+#define SPEED 15
+
 void tetris_play();
-void test();
+
+
 
 int main()
 {
 	initscr();
+	//init_pair(1, COLOR_WHITE, COLOR_RED);
 	curs_set(0);
 
 	tetris_play();
 
 	curs_set(1);
 	endwin();
-    return 0;
+    
+	return 0;
 }
 
 void tetris_play()
 {
 
 	struct block newBlock;
-	int curStatus[25][12];
-	
+
 	init_tetrix();
 	srand(time(NULL));
 
 	print_frame();
 
-	while(1){
-
-		for(int i = 0; i < 25; i++)   //back up the tetrix
-			for(int j = 0; j < 12; j++)
-				curStatus[i][j] = tetrix[i][j];
+	while(!isgameEnd()){ //while game play
+		back_up_tetrix(0,tetrix);
 		newBlock = make_block(rand() % 6);
 		
-		while(!isTouch()){
-			movement(&newBlock,1);			
-			for(int i = 0; i < 25; i++)		// get the tetrix
-				for(int j = 0; j < 12; j++)
-					tetrix[i][j] = curStatus[i][j];
-			mark_shape(newBlock);
+		while(!isTouch(movement(newBlock,1))){ //while one block drop
+			newBlock = movement(newBlock,1);
+			back_up_tetrix(1,tetrix);
+			mark_shape(tetrix,newBlock);
 			print_tetrix();
-			sleep(1);
+		//	sleep(1);
+
+move(34,0);
+for(int i=0; i <MAX_HIGHT; i++){
+for(int j=0; j <MAX_WIDTH; j++)
+{printw("%d ",tetrix[i][j]);}
+printw("\n");}
+refresh();
+usleep(1000000/SPEED);
 		}
+		
 	}
 
-}
-void test()
-{
-	struct block testblock;
-
-	int curStatus[25][12];
-	init_tetrix();
-	srand(time(NULL));
-	testblock = make_block(1);
-
-	printf("%d\n\n\n\n\n\n\n",testblock.shape);
-
-			for(int i = 0; i < 25; i++)   //back up the tetrix
-			for(int j = 0; j < 12; j++)
-				curStatus[i][j] = tetrix[i][j];
-	
-	movement(&testblock,1);
-	mark_shape(testblock);
-	for(int i = 20 ; i > 0 ; i--){
-		for(int j = 1 ; j <11 ; j++)
-			printf("%d",tetrix[i][j]);
-		printf("\n");
-	}
-
-	printf("\n\n\n\n");
-
-	movement(&testblock,1);
-			for(int i = 0; i < 25; i++)   //back up the tetrix
-			for(int j = 0; j < 12; j++)
-				tetrix[i][j] = curStatus[i][j];
-	mark_shape(testblock);	
-	for(int i = 20 ; i > 0 ; i--){
-		for(int j = 1 ; j <11 ; j++)
-			printf("%d",tetrix[i][j]);
-		printf("\n");
-	}
-
-
+	clear();
+	standout();
+	mvprintw(9,6,"GAME OVER");
+	standend();	
+	refresh();
+	getchar();
 }
 
 
